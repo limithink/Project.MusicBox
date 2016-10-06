@@ -62,7 +62,7 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 	return 0;
 }
 
-//char* OpenAllFiles(OPD OriPitchData,WFH *head) {
+
 int OpenAllFiles(OPD OriPitchData, WFH *head) {
 	FILE *fp;
 	char fname[25];
@@ -77,39 +77,46 @@ int OpenAllFiles(OPD OriPitchData, WFH *head) {
 
 		sprintf(fname, "Track30\\%d.wave", i);//循环从1.wav开始30个相对路径
 		fp = fopen(fname, "r");//open a pitch file
-
 		if (!fp) {
 			printf("open file unsuccessful");
 			return NULL;
 		}
 
+		//skip "RIFF"头数据
+		fseek(fp, 8, SEEK_SET);
+		fread(str, sizeof(char), 7, fp);
+		str[7] = '\0';
+		if (strcmp(str, "WAVEfmt")) {
+			fprintf(stderr, "The file is not in WAVE format!\n");
+			return NULL;
+		}
+		//skip "fmt"头数据
 		fseek(fp, 16, SEEK_SET);
-		fread((size_t*)(&subchunk1size), 4, 1, fp);
-
+		fread((size_t*)(&subchunk1size), 4, 1, fp);//得到subchunk1size
 
 		fseek(fp, 20 + subchunk1size, SEEK_SET);// 跳过头文件确认data标识
 		fread(str, 1, 4, fp);
 		str[4] = '\0';
-
 		if (strcmp(str, "data")) {
 			printf("filed data start point!\n");
 			return NULL;
 		}
 
-
-		//获得offs大小，pitch指针？
+		//获得数据大小，pitch数据指针
 		fseek(fp, 20 + subchunk1size + 4, SEEK_SET);
-		fread((size_t)(OriPitchData.offs[i]), 4, 1, fp);//要不要加（size_t）或（size_t*）呢
+		fread((size_t)(OriPitchData.offs[i]), 4, 1, fp);
+		fread((unsigned int*)(&subchunk2size), 4, 1, fp);
 
-														//fread((unsigned int*)(&subchunk2size), 4, 1, fp);Subchunk2Size :占4个字节，内容为接下来的正式的数据部分的字节数
 		pitchdata = (char*)malloc(sizeof(char)*subchunk2size);
 		if (!pitchdata) {
 			fprintf(stderr, "Memory alloc failed!\n");
 			return NULL;
 		}
 		fseek(fp, 20 + subchunk1size + 8, SEEK_SET);
-		fread(OriPitchData.pitch[i], 1, subchunk2size, fp);
-
+		fread(pitchdata, 1, subchunk2size, fp);
+		OriPitchData.pitch[i] = pitchdata;
+		printf("%d", i);
 		fclose(fp);
 	}
+	return 0;
 }
