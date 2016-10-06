@@ -16,7 +16,9 @@ int main(int argc, CHAR *argv[])
 	COUNTNUM nTotalSample;
 	size_t nBytePerSample;
 	//OriginalPitch Load + config.ini Load
-	
+	OPD OriPitchData;
+	WFH *head;
+	OpenAllFiles(OriPitchData, head);
 	//
 	printf("BuildWorld MusicBox [Version %s]\nCopyright 2016 buildworld.net. All rights reserved.\n\n", VERSION);
 	while (!ExitFlag)
