@@ -44,17 +44,13 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 	if (fwrite(pTrackHead, sizeof(TFH), 1, fpTrackFile) != 1) return -2;
 	nBytePerSample = (pTrackHead->nPitchPerSample)*(pTrackHead->nBitPerPitch) / 8;
 	nTotalSample = pTrackHead->szData / nBytePerSample;
-	free(pTrackHead);
 	//linkedlist write
 	pCur = pTrackData;
 	for (nSample = 0; nSample < nTotalSample; nSample++)
 	{
 		if (!pCur->pSampleData) return -3;//if editer had not allocation for pSampleData,it will be a bug
 		fwrite(pCur->pSampleData, nBytePerSample, 1, fpTrackFile);
-		free(pCur->pSampleData);
-		pTemp = pCur;
 		pCur = pCur->pNextNode;
-		free(pTemp);
 	}
 	fclose(fpTrackFile);
 	return 0;
@@ -67,7 +63,7 @@ int LoadPitchFiles(pOPD OriPitchData)
 	char path[_MAX_PATH];
 	char temp;
 	size_t szData;
-	int rtn, VerifyFlag = 0;
+	int VerifyFlag = 0;
 	for (int i = 0; i < PITCH; i++)
 	{
 		sprintf(path, "pitch_src\\%d.wav", i + 1);

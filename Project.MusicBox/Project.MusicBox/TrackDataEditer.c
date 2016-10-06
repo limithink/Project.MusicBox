@@ -30,10 +30,13 @@ COUNTNUM Editer_set(pTFH pTrackHead, pTDLL pTrackData,
 			pCur->pNextNode->pNextNode = NULL;
 			pCur->pNextNode->pSampleData = NULL;
 		}
-		if (nSample + 1 > nTotalSample) pTrackHead->szData += nBytePerSample;
+		if (nSample + 1 >= nTotalSample) pTrackHead->szData += nBytePerSample;
 		pCur = pCur->pNextNode;
-		if (!pCur->pSampleData) pCur->pSampleData = (pBYTE)malloc(nBytePerSample);
-		ZeroMemory(pCur->pSampleData, nBytePerSample);
+		if (!pCur->pSampleData)
+		{
+			pCur->pSampleData = (pBYTE)malloc(nBytePerSample);
+			ZeroMemory(pCur->pSampleData, nBytePerSample);
+		}
 	}
 	poi = pCur->pSampleData;
 	//seek ObjPitch

@@ -10,7 +10,7 @@ int main(int argc, CHAR *argv[])
 	int ExitFlag = 0, FileOpenedFlag = 0;
 	pTFH pTrackHead = NULL;              //ptr to TrackFileHead
 	pTDLL pTrackData = NULL;             //ptr to TrackFileData
-	pBYTE pWaveHead = NULL;              //ptr to WaveFileHead
+	pWFH pWaveHead = NULL;              //ptr to WaveFileHead
 	pSD pWaveData = NULL;                //ptr to WaveFileData
 	COUNTNUM nTotalSample;
 	size_t nBytePerSample;
@@ -79,13 +79,13 @@ int main(int argc, CHAR *argv[])
 		switch (opt->opera)
 		{
 		case OPERA_OPEN:
-			ForgetEver(pTrackHead, pTrackData);
+			ForgetEver(pTrackHead, pTrackData, pWaveHead, pWaveData);
 			rtn_s = LoadTrackFile(opt->path, &pTrackHead, &pTrackData);
 			if (rtn_s < 0) printf("TrackFile Loading Fail\n");
 			else printf("TrackFile Loading Finish\n");
 			break;
 		case OPERA_CREATE:
-			ForgetEver(pTrackHead, pTrackData);
+			ForgetEver(pTrackHead, pTrackData, pWaveHead, pWaveData);
 			pTrackHead = (pTFH)malloc(sizeof(TFH));
 			//Initialize FileHead
 			pTrackHead->tag[0] = 'b';
@@ -164,14 +164,45 @@ int main(int argc, CHAR *argv[])
 		}
 	}
 	free(opt);
-	ForgetEver(pTrackHead, pTrackData);
+	ForgetEver(pTrackHead, pTrackData, pWaveHead, pWaveData);
 	return 0;
 }
 
-void ForgetEver(pTFH pTrackHead, pTDLL pTrackData)
+int ForgetEver(pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD pWaveData)
 {
-	if (!pTrackHead) free(pTrackHead);
-	if (!pTrackData) free(pTrackData);
+	if (pTrackHead)
+	{
+		free(pTrackHead);
+		pTrackHead = NULL;
+	}
+	if (pTrackData)//LinkList
+	{
+		pTDLL pCur, pTemp;
+		pCur = pTrackData;
+		while (pCur)
+		{
+			if (!pCur->pSampleData) return -1;//if editer had not allocation for pSampleData,it will be a bug
+			free(pCur->pSampleData);
+			pTemp = pCur;
+			if (pCur->pNextNode)
+			{
+				pCur = pCur->pNextNode;
+			}
+			free(pTemp);
+		}
+		free(pTrackData);
+		pTrackData = NULL;
+	}
+	if (pWaveHead)
+	{
+		free(pWaveHead);
+		pWaveHead = NULL;
+	}
+	if (pWaveData)
+	{
+		free(pWaveData);
+		pWaveData = NULL;
+	}
 }
 
 void InitWaveHead(pWFH pWaveHead, COUNTNUM nBitPerSample, COUNTNUM nSamplesPerSec, COUNTNUM nChannels)

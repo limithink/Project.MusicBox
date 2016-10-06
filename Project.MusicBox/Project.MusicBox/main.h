@@ -7,5 +7,5 @@
 #include "TrackDataEditer.h"
 #include "WaveSynthesizer.h"
 
-void ForgetEver(pTFH pTrackHead, pTDLL pTrackData);
+int ForgetEver(pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD pWaveData);
 void InitWaveHead(pWFH pWaveHead, COUNTNUM nBitPerSample, COUNTNUM nSamplesPerSec, COUNTNUM nChannels);

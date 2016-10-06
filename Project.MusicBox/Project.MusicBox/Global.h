@@ -31,7 +31,7 @@ typedef double REALNUM;
 //TrackFileHead
 typedef struct TrackFileHead
 {
-	CHAR tag[5];
+	char tag[8];//'bwmbt' use [5] is enough, [8] for memory align
 	COUNTNUM szHead;//size of FileHead
 	COUNTNUM nBitPerPitch;
 	COUNTNUM nPitchPerSample;
