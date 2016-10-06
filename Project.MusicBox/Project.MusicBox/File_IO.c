@@ -2,10 +2,9 @@
 
 #include "File_IO.h"
 
-FILE *fpTrackFile, *fpWaveFile;
-
 int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 {
+	FILE *fpTrackFile;
 	pTFH pFileHead = (pTFH)malloc(sizeof(TFH));
 	pTDLL pDataHead = (pTDLL)malloc(sizeof(TDLL));
 	COUNTNUM nSample, nTotalSample;
@@ -28,7 +27,6 @@ int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 	}
 	free(pCur);
 	fclose(fpTrackFile);
-	fpTrackFile = NULL;
 	*ppTrackHead = pFileHead;
 	*ppTrackData = pDataHead;
 	return 0;
@@ -36,6 +34,7 @@ int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 
 int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 {
+	FILE *fpTrackFile;
 	COUNTNUM nSample, nTotalSample;
 	size_t nBytePerSample;
 	pTDLL pCur, pTemp;
@@ -58,64 +57,53 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 		free(pTemp);
 	}
 	fclose(fpTrackFile);
-	fpTrackFile = NULL;
 	return 0;
 }
 
 
-int OpenAllFiles(pOPD OriPitchData) {
-	FILE *fp;
-	char fname[25];
-	char str[32];
-	char *pitchdata;
-	size_t subchunk1size; // head size
-	size_t subchunk2size; // pitchdata data size
-	for (int i = 0; i < PITCH; i++) {
-		str[0] = '\0';
-		pitchdata = NULL;
-
-		sprintf(fname, "Track30\\%d.wav", i + 1);//循环从1.wav开始30个相对路径
-		fp = fopen(fname, "r");//open a pitch file
-		if (!fp) {
-			printf("open file unsuccessful");
-			return NULL;
+int LoadPitchFiles(pOPD OriPitchData)
+{
+	FILE *fpWaveFile;
+	char path[_MAX_PATH];
+	char temp;
+	size_t szData;
+	int rtn, VerifyFlag = 0;
+	for (int i = 0; i < PITCH; i++)
+	{
+		sprintf(path, "pitch_src\\%d.wav", i + 1);
+		fpWaveFile = fopen(path, "rb");
+		if (!fpWaveFile)
+		{
+			printf("Open\"%s\"Error!\n", path);
+			return -1;
 		}
-
-		//skip "RIFF"头数据
-		fseek(fp, 8, SEEK_SET);
-		fread(str, sizeof(char), 7, fp);
-		str[7] = '\0';
-		if (strcmp(str, "WAVEfmt")) {
-			fprintf(stderr, "The file is not in WAVE format!\n");
-			return NULL;
+		//seek data chunk
+		temp = NULL;
+		while (!(feof(fpWaveFile)) && ftell(fpWaveFile) < 100)
+		{
+			while (temp != 'd')
+			{
+				if (!fread(&temp, 1, 1, fpWaveFile)) return -2;
+			}
+			if (!fread(&temp, 1, 1, fpWaveFile)) return -2;
+			if (temp != 'a') continue;
+			if (!fread(&temp, 1, 1, fpWaveFile)) return -2;
+			if (temp != 't') continue;
+			if (!fread(&temp, 1, 1, fpWaveFile)) return -2;
+			if (temp != 'a') continue;
+			VerifyFlag = 1;
+			break;
 		}
-		//skip "fmt"头数据
-		fseek(fp, 16, SEEK_SET);
-		fread((size_t*)(&subchunk1size), 4, 1, fp);//得到subchunk1size
-
-		fseek(fp, 20 + subchunk1size, SEEK_SET);// 跳过头文件确认data标识
-		fread(str, 1, 4, fp);
-		str[4] = '\0';
-		if (strcmp(str, "data")) {
-			printf("filed data start point!\n");
-			return NULL;
-		}
-
-		//获得数据大小，pitch数据指针
-		fseek(fp, 20 + subchunk1size + 4, SEEK_SET);
-		fread((size_t)(OriPitchData->offs[i]), 4, 1, fp);
-		fread((unsigned int*)(&subchunk2size), 4, 1, fp);
-
-		pitchdata = (char*)malloc(sizeof(char)*subchunk2size);
-		if (!pitchdata) {
-			fprintf(stderr, "Memory alloc failed!\n");
-			return NULL;
-		}
-		fseek(fp, 20 + subchunk1size + 8, SEEK_SET);
-		fread(pitchdata, 1, subchunk2size, fp);
-		OriPitchData->pitch[i] = pitchdata;
-		printf("%d", i);
-		fclose(fp);
+		if (!VerifyFlag) return -2;
+		//get size
+		if (!fread(&szData, sizeof(UINT32), 1, fpWaveFile)) return -3;
+		OriPitchData->offs[i] = szData;
+		//Load data
+		OriPitchData->pitch[i] = (char *)malloc(szData);
+		if (!fread(OriPitchData->pitch[i], szData, 1, fpWaveFile)) return -4;
+		fclose(fpWaveFile);
+		fpWaveFile = NULL;//fp reset null
 	}
 	return 0;
 }
+

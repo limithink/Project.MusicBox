@@ -6,7 +6,7 @@
 
 int main(int argc, CHAR *argv[])
 {
-	int ret_s, ret_u;
+	int rtn_s, rtn_u;
 	int ExitFlag = 0, FileOpenedFlag = 0;
 	pTFH pTrackHead = NULL;              //ptr to TrackFileHead
 	pTDLL pTrackData = NULL;             //ptr to TrackFileData
@@ -19,7 +19,27 @@ int main(int argc, CHAR *argv[])
 	//end
 	//OriginalPitch Load + config.ini Load
 	pOPD OriPitchData = (pOPD)malloc(sizeof(OPD));
-	OpenAllFiles(OriPitchData);
+	rtn_s = LoadPitchFiles(OriPitchData);
+	if (rtn_s < 0)
+	{
+		printf("LoadPitchFile Error!\n");
+		switch (rtn_s)
+		{
+		case -1:
+			break;
+		case -2:
+			printf("Seek DataChunk Error!\n");
+			break;
+		case -3:
+			printf("get DataSize Error!\n");
+			break;
+		case -4:
+			printf("Load Data Error!\n");
+			break;
+		}
+		printf("Progam Exit......");
+		system("pause");
+	}
 	//end
 	pOPT opt = (pOPT)malloc(sizeof(OPT));//ptr to operation structure
 	printf("BuildWorld MusicBox [Version %s]\nCopyright 2016 buildworld.net. All rights reserved.\n\n", VERSION);
@@ -36,10 +56,10 @@ int main(int argc, CHAR *argv[])
 				nTotalSample);
 		}
 		printf("_(:3¡¹¡Ï)_> ");
-		ret_s = CommandInterpreter(opt);
-		if (ret_s < 0)
+		rtn_s = CommandInterpreter(opt);
+		if (rtn_s < 0)
 		{
-			switch (ret_s)
+			switch (rtn_s)
 			{
 			case -1:
 				printf("Input illegal,not a string!\n");
@@ -60,8 +80,8 @@ int main(int argc, CHAR *argv[])
 		{
 		case OPERA_OPEN:
 			ForgetEver(pTrackHead, pTrackData);
-			ret_s = LoadTrackFile(opt->path, &pTrackHead, &pTrackData);
-			if (ret_s < 0) printf("TrackFile Loading Fail\n");
+			rtn_s = LoadTrackFile(opt->path, &pTrackHead, &pTrackData);
+			if (rtn_s < 0) printf("TrackFile Loading Fail\n");
 			else printf("TrackFile Loading Finish\n");
 			break;
 		case OPERA_CREATE:
@@ -90,13 +110,13 @@ int main(int argc, CHAR *argv[])
 			strcpy(OpenedFilePath, opt->path);
 			break;
 		case OPERA_SAVE:
-			ret_s = SaveTrackFile(NULL, pTrackHead, pTrackData, 0);
-			if (ret_s < 0) printf("TrackFile Saving Fail\n");
+			rtn_s = SaveTrackFile(NULL, pTrackHead, pTrackData, 0);
+			if (rtn_s < 0) printf("TrackFile Saving Fail\n");
 			else printf("TrackFile Saving Finish\n");
 			break;
 		case OPERA_SAVEAS:
-			ret_s = SaveTrackFile(opt->path, pTrackHead, pTrackData, 1);
-			if (ret_s < 0) printf("TrackFile Saving Fail\n");
+			rtn_s = SaveTrackFile(opt->path, pTrackHead, pTrackData, 1);
+			if (rtn_s < 0) printf("TrackFile Saving Fail\n");
 			else printf("TrackFile Saving Finish\n");
 			break;
 		case OPERA_EXIT:
@@ -109,23 +129,23 @@ int main(int argc, CHAR *argv[])
 		case OPERA_ABORT:
 			break;
 		case OPERA_SET:
-			ret_u = Editer_set(pTrackHead, pTrackData,
+			rtn_u = Editer_set(pTrackHead, pTrackData,
 				opt->param1, opt->param2, opt->param3);
-			printf("operation complete!AddNewSample:%d\n", ret_u);
+			printf("operation complete!AddNewSample:%d\n", rtn_u);
 			break;
 		case OPERA_INSERT:
-			ret_s = Editer_insert(pTrackHead, pTrackData, opt->param1, opt->param2);
-			if (ret_s < 0) printf("Insert Operation Failed!\n");
+			rtn_s = Editer_insert(pTrackHead, pTrackData, opt->param1, opt->param2);
+			if (rtn_s < 0) printf("Insert Operation Failed!\n");
 			else printf("Insert Operation succeed!\n");
 			break;
 		case OPERA_DELETE:
-			ret_s = Editer_delete(pTrackHead, pTrackData, opt->param1, opt->param2);
-			if (ret_s < 0) printf("Delete Operation Failed!\n");
+			rtn_s = Editer_delete(pTrackHead, pTrackData, opt->param1, opt->param2);
+			if (rtn_s < 0) printf("Delete Operation Failed!\n");
 			else printf("Delete Operation succeed!\n");
 			break;
 		case OPERA_FORMAT:
-			ret_u = Editer_format(pTrackHead, pTrackData, opt->param1, opt->param2);
-			printf("operation complete!AddNewSample:%d\n", ret_u);
+			rtn_u = Editer_format(pTrackHead, pTrackData, opt->param1, opt->param2);
+			printf("operation complete!AddNewSample:%d\n", rtn_u);
 			break;
 		case OPERA_ECHO:
 			break;

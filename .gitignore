@@ -243,3 +243,4 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/Project.MusicBox/Project.MusicBox/pitch_src
