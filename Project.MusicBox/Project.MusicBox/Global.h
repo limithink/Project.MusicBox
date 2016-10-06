@@ -28,9 +28,6 @@ typedef unsigned int UINT32;
 typedef INT16 SampleData, SD, *pSD;
 typedef double REALNUM;
 
-//global var
-CHAR OpenedFilePath[_MAX_PATH];
-
 //TrackFileHead
 typedef struct TrackFileHead
 {
@@ -123,3 +120,6 @@ typedef struct iterationStatus
 
 #define OPERA_HELP              16              //null
 //
+
+//global var
+CHAR OpenedFilePath[_MAX_PATH];

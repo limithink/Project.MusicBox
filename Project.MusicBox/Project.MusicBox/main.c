@@ -8,18 +8,20 @@ int main(int argc, CHAR *argv[])
 {
 	int ret_s, ret_u;
 	int ExitFlag = 0, FileOpenedFlag = 0;
-	pOPT opt = (pOPT)malloc(sizeof(OPT));
-	pTFH pTrackHead = NULL;
-	pTDLL pTrackData = NULL;
-	pBYTE pWaveHead = NULL;
-	pSD pWaveData = NULL;
+	pTFH pTrackHead = NULL;              //ptr to TrackFileHead
+	pTDLL pTrackData = NULL;             //ptr to TrackFileData
+	pBYTE pWaveHead = NULL;              //ptr to WaveFileHead
+	pSD pWaveData = NULL;                //ptr to WaveFileData
 	COUNTNUM nTotalSample;
 	size_t nBytePerSample;
+	//config.ini Load
+
+	//end
 	//OriginalPitch Load + config.ini Load
-	OPD OriPitchData;
-	WFH *head;
-	OpenAllFiles(OriPitchData, head);
-	//
+	pOPD OriPitchData = (pOPD)malloc(sizeof(OPD));
+	OpenAllFiles(OriPitchData);
+	//end
+	pOPT opt = (pOPT)malloc(sizeof(OPT));//ptr to operation structure
 	printf("BuildWorld MusicBox [Version %s]\nCopyright 2016 buildworld.net. All rights reserved.\n\n", VERSION);
 	while (!ExitFlag)
 	{

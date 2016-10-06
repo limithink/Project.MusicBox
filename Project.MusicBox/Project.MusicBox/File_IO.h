@@ -4,4 +4,4 @@
 
 int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData);
 int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier);
-int OpenAllFiles(OPD OriPitchData, WFH *head);
+int OpenAllFiles(pOPD OriPitchData);

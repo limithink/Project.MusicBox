@@ -63,19 +63,18 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 }
 
 
-int OpenAllFiles(OPD OriPitchData, WFH *head) {
+int OpenAllFiles(pOPD OriPitchData) {
 	FILE *fp;
 	char fname[25];
 	char str[32];
 	char *pitchdata;
 	size_t subchunk1size; // head size
 	size_t subchunk2size; // pitchdata data size
-
-	for (int i = 1; i <= PITCH; i++) {
+	for (int i = 0; i < PITCH; i++) {
 		str[0] = '\0';
 		pitchdata = NULL;
 
-		sprintf(fname, "Track30\\%d.wave", i);//循环从1.wav开始30个相对路径
+		sprintf(fname, "Track30\\%d.wav", i + 1);//循环从1.wav开始30个相对路径
 		fp = fopen(fname, "r");//open a pitch file
 		if (!fp) {
 			printf("open file unsuccessful");
@@ -104,7 +103,7 @@ int OpenAllFiles(OPD OriPitchData, WFH *head) {
 
 		//获得数据大小，pitch数据指针
 		fseek(fp, 20 + subchunk1size + 4, SEEK_SET);
-		fread((size_t)(OriPitchData.offs[i]), 4, 1, fp);
+		fread((size_t)(OriPitchData->offs[i]), 4, 1, fp);
 		fread((unsigned int*)(&subchunk2size), 4, 1, fp);
 
 		pitchdata = (char*)malloc(sizeof(char)*subchunk2size);
@@ -114,7 +113,7 @@ int OpenAllFiles(OPD OriPitchData, WFH *head) {
 		}
 		fseek(fp, 20 + subchunk1size + 8, SEEK_SET);
 		fread(pitchdata, 1, subchunk2size, fp);
-		OriPitchData.pitch[i] = pitchdata;
+		OriPitchData->pitch[i] = pitchdata;
 		printf("%d", i);
 		fclose(fp);
 	}
