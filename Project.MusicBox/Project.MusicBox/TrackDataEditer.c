@@ -73,6 +73,8 @@ int Editer_insert(pTFH pTrackHead, pTDLL pTrackData, COUNTNUM nStartSample, COUN
 	for (nSample = 0; nSample < nInsertSample; nSample++)
 	{
 		pCur->pNextNode = (pTDLL)malloc(sizeof(TDLL));
+		pCur->pNextNode->pNextNode = NULL;
+		pCur->pNextNode->pSampleData = NULL;
 		pTrackHead->szData += nBytePerSample;
 		pCur = pCur->pNextNode;
 		pCur->pSampleData = (pBYTE)malloc(nBytePerSample);
@@ -138,6 +140,8 @@ COUNTNUM Editer_format(pTFH pTrackHead, pTDLL pTrackData, COUNTNUM nStartSample,
 	for (nSample = 0; nSample < nStartSample; nSample++)
 	{
 		if (!pCur->pNextNode) pCur->pNextNode = (pTDLL)malloc(sizeof(TDLL));
+		pCur->pNextNode->pNextNode = NULL;
+		pCur->pNextNode->pSampleData = NULL;
 		if (nSample + 1 > nTotalSample) pTrackHead->szData += nBytePerSample;
 		pCur = pCur->pNextNode;
 		if (!pCur->pSampleData) pCur->pSampleData = (pBYTE)malloc(nBytePerSample);
@@ -150,6 +154,8 @@ COUNTNUM Editer_format(pTFH pTrackHead, pTDLL pTrackData, COUNTNUM nStartSample,
 		if (!pCur->pNextNode)
 		{
 			pCur->pNextNode = (pTDLL)malloc(sizeof(TDLL));
+			pCur->pNextNode->pNextNode = NULL;
+			pCur->pNextNode->pSampleData = NULL;
 			pTrackHead->szData += nBytePerSample;
 		}
 		pCur = pCur->pNextNode;

@@ -123,6 +123,8 @@ int main(int argc, CHAR *argv[])
 			ExitFlag = 1;
 			break;
 		case OPERA_WAVGENERATION:
+			if (!pWaveHead) pWaveHead = (pWFH)malloc(sizeof(WFH));
+			EditWaveHead(pWaveHead, opt->param1, opt->param2, opt->param3);
 			if (!pWaveData)
 			{
 				printf("WaveSynthesizing......\n");
@@ -144,6 +146,8 @@ int main(int argc, CHAR *argv[])
 			else printf("Create WAV File Finish\n");
 			break;
 		case OPERA_PLAY:
+			if (!pWaveHead) pWaveHead = (pWFH)malloc(sizeof(WFH));
+			EditWaveHead(pWaveHead, opt->param1, opt->param2, opt->param3);
 			if (!pWaveData)
 			{
 				printf("WaveSynthesizing......\n");
@@ -240,7 +244,7 @@ int ForgetEver(pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD pWaveData)
 	}
 }
 
-void InitWaveHead(pWFH pWaveHead, COUNTNUM nBitPerSample, COUNTNUM nSamplesPerSec, COUNTNUM nChannels)
+void EditWaveHead(pWFH pWaveHead, COUNTNUM nBitPerSample, COUNTNUM nSamplesPerSec, COUNTNUM nChannels)
 {
 	pWaveHead->RIFF_tag[0] = 'R';
 	pWaveHead->RIFF_tag[1] = 'I';
