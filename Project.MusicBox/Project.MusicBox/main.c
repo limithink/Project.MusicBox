@@ -18,8 +18,8 @@ int main(int argc, CHAR *argv[])
 
 	//end
 	//OriginalPitch Load + config.ini Load
-	pOPD OriPitchData = (pOPD)malloc(sizeof(OPD));
-	rtn_s = LoadPitchFiles(OriPitchData);
+	pOPD pOriPitchData = (pOPD)malloc(sizeof(OPD));
+	rtn_s = LoadPitchFiles(pOriPitchData);
 	if (rtn_s < 0)
 	{
 		printf("LoadPitchFile Error!\n");
@@ -123,8 +123,43 @@ int main(int argc, CHAR *argv[])
 			ExitFlag = 1;
 			break;
 		case OPERA_WAVGENERATION:
+			if (!pWaveData)
+			{
+				printf("WaveSynthesizing......\n");
+				rtn_s = WaveSynthesizer(pOriPitchData, pTrackHead, pTrackData, pWaveHead, &pWaveData);
+				if (rtn_s < 0)
+				{
+					printf("WaveSynthesizing Error!\n");
+					break;
+				}
+				else printf("WaveSynthesizing Complete!\n");
+			}
+			else
+			{
+				printf("WaveData exist");
+			}
+			printf("Create WAV File......\n");
+			rtn_s = SaveWaveFile(opt->path, pWaveHead, pWaveData);
+			if (rtn_s < 0) printf("Create WAV File Error!\n");
+			else printf("Create WAV File Finish\n");
 			break;
 		case OPERA_PLAY:
+			if (!pWaveData)
+			{
+				printf("WaveSynthesizing......\n");
+				rtn_s = WaveSynthesizer(pOriPitchData, pTrackHead, pTrackData, pWaveHead, &pWaveData);
+				if (rtn_s < 0)
+				{
+					printf("WaveSynthesizing Error!\n");
+					break;
+				}
+				else printf("WaveSynthesizing Complete!\n");
+			}
+			else
+			{
+				printf("WaveData exist");
+			}
+			//playback
 			break;
 		case OPERA_ABORT:
 			break;

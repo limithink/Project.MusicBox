@@ -4,7 +4,7 @@
 
 int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 {
-	FILE *fpTrackFile;
+	FILE *fpTrackFile = NULL;
 	pTFH pFileHead = (pTFH)malloc(sizeof(TFH));
 	pTDLL pDataHead = (pTDLL)malloc(sizeof(TDLL));
 	COUNTNUM nSample, nTotalSample;
@@ -34,7 +34,7 @@ int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 
 int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 {
-	FILE *fpTrackFile;
+	FILE *fpTrackFile = NULL;
 	COUNTNUM nSample, nTotalSample;
 	size_t nBytePerSample;
 	pTDLL pCur, pTemp;
@@ -59,7 +59,7 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 
 int LoadPitchFiles(pOPD OriPitchData)
 {
-	FILE *fpWaveFile;
+	FILE *fpWaveFile = NULL;
 	char path[_MAX_PATH];
 	char temp;
 	size_t szData;
@@ -100,6 +100,22 @@ int LoadPitchFiles(pOPD OriPitchData)
 		fclose(fpWaveFile);
 		fpWaveFile = NULL;//fp reset null
 	}
+	return 0;
+}
+
+int SaveWaveFile(CHAR *path, pWFH pWaveHead, pSD pWaveData)
+{
+	FILE *fpWaveFile = NULL;
+	int rtn;
+	fpWaveFile = fopen(path, "wb");
+	if (!fpWaveFile) return -1;
+	//Write WaveFileHead
+	rtn = fwrite(pWaveHead, sizeof(WFH), 1, fpWaveFile);
+	if (rtn != 1) return -2;
+	//Write WaveData
+	rtn = fwrite(pWaveData, pWaveHead->szSampleData, 1, fpWaveFile);
+	if (rtn != 1) return -3;
+	fclose(fpWaveFile);
 	return 0;
 }
 
