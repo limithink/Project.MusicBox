@@ -10,7 +10,7 @@ int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 	COUNTNUM nSample, nTotalSample;
 	size_t nBytePerSample;
 	pTDLL pCur;
-	strcpy(OpenedFilePath, path);
+	strcpy(g_OpenedFilePath, path);
 	fpTrackFile = fopen(path, "rb");
 	if (!fpTrackFile) return -1;
 	if (fread(pFileHead, sizeof(TFH), 1, fpTrackFile) != 1) return -2;
@@ -39,7 +39,7 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 	size_t nBytePerSample;
 	pTDLL pCur, pTemp;
 	if (IDentifier) fpTrackFile = fopen(path, "wb");
-	else fpTrackFile = fopen(OpenedFilePath, "wb");
+	else fpTrackFile = fopen(g_OpenedFilePath, "wb");
 	if (!fpTrackFile) return -1;
 	if (fwrite(pTrackHead, sizeof(TFH), 1, fpTrackFile) != 1) return -2;
 	nBytePerSample = (pTrackHead->nPitchPerSample)*(pTrackHead->nBitPerPitch) / 8;
@@ -63,8 +63,8 @@ int LoadPitchFiles(pOPD OriPitchData)
 	char path[_MAX_PATH];
 	char temp;
 	size_t szData;
-	int VerifyFlag = 0;
-	for (int i = 0; i < PITCH; i++)
+	int i, VerifyFlag = 0;
+	for (i = 0; i < g_TotalPitch; i++)
 	{
 		sprintf(path, "pitch_src\\%d.wav", i + 1);
 		fpWaveFile = fopen(path, "rb");
@@ -93,9 +93,9 @@ int LoadPitchFiles(pOPD OriPitchData)
 		if (!VerifyFlag) return -2;
 		//get size
 		if (!fread(&szData, sizeof(UINT32), 1, fpWaveFile)) return -3;
-		OriPitchData->offs[i] = szData;
+		OriPitchData->szData[i] = szData;
 		//Load data
-		OriPitchData->pitch[i] = (char *)malloc(szData);
+		OriPitchData->pitch[i] = (pSD)malloc(szData);
 		if (!fread(OriPitchData->pitch[i], szData, 1, fpWaveFile)) return -4;
 		fclose(fpWaveFile);
 		fpWaveFile = NULL;//fp reset null

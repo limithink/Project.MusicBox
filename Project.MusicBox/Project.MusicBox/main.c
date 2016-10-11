@@ -107,7 +107,7 @@ int main(int argc, CHAR *argv[])
 			ZeroMemory(pTrackData->pSampleData, nBytePerSample);
 			pTrackData->pNextNode = NULL;
 			//
-			strcpy(OpenedFilePath, opt->path);
+			strcpy(g_OpenedFilePath, opt->path);
 			break;
 		case OPERA_SAVE:
 			rtn_s = SaveTrackFile(NULL, pTrackHead, pTrackData, 0);

@@ -13,7 +13,7 @@
 #define MIN_OPERA 3
 #define MAX_NUM_BIT 10
 
-#define PITCH 30
+#define TOTALPITCH 30
 #define PI M_PI
 #define	FFT_NUM 1024
 
@@ -82,16 +82,16 @@ typedef struct Operation
 //OrginPitchData
 typedef struct OriginalPitchData
 {
-	pSD pitch[PITCH];
-	size_t offs[PITCH];
+	pSD pitch[TOTALPITCH];
+	size_t szData[TOTALPITCH];
 }OPD, *pOPD;
 
 typedef struct iterationStatus
 {
 	//iteration data
-	size_t pitch_cur[PITCH];
-	size_t fft_cur[PITCH];
-	COUNTNUM nLevel[PITCH];
+	size_t pitch_cur[TOTALPITCH];
+	size_t fft_cur[TOTALPITCH];
+	COUNTNUM nLevel[TOTALPITCH];
 	size_t sum_fft_cur;
 	size_t sum_ifft_cur;
 	size_t wave_cur;
@@ -122,4 +122,6 @@ typedef struct iterationStatus
 //
 
 //global var
-CHAR OpenedFilePath[_MAX_PATH];
+CHAR g_OpenedFilePath[_MAX_PATH];
+COUNTNUM g_fftnum = FFT_NUM;
+COUNTNUM g_TotalPitch = TOTALPITCH;

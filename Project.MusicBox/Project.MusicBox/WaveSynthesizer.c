@@ -63,6 +63,78 @@ void ZeroRealArray(REALNUM *arr, COUNTNUM offs)
 	}
 }
 
+unsigned int BYTE2UINT(pBYTE src)
+{
+	unsigned int sum, i;
+	char temp;
+	for (i = 0, sum = 0; i < 8; i++)
+	{
+		temp = *src >> i;
+		temp <<= 7;
+		if (temp == '€') sum += pow(2, i);
+	}
+	return sum;
+}
+
+COUNTNUM getLevel(pBYTE *pSampleData, COUNTNUM nObjPitch, COUNTNUM nBytePerPitch)
+{
+	COUNTNUM nLevel, series, nPitch, Pitch_off, Level_off;
+	for (nPitch = 0, Pitch_off = 0; nPitch < nObjPitch; nPitch++, Pitch_off += nBytePerPitch);
+	for (Level_off = 0, nLevel = 0, series = 1; Level_off < nBytePerPitch; Level_off++)
+	{
+		nLevel = series*BYTE2UINT(pSampleData + Pitch_off + Level_off);
+		series <<= 8;
+	}
+	return nLevel;
+}
+
+void FFT_Execute(REALNUM *pSrcArray, REALNUM *pObjArray, COUNTNUM Src_off, int inv_sign, int mode_sign)//mode_sign:True means add, False means Copy by cover
+{
+	COUNTNUM cur, Mod, times, i, off;
+	REALNUM *pFFTArray_real, *pFFTArray_imag;
+	pFFTArray_real = (REALNUM *)calloc(g_fftnum, sizeof(REALNUM));
+	pFFTArray_imag = (REALNUM *)calloc(g_fftnum, sizeof(REALNUM));
+	times = Src_off / g_fftnum;
+	Mod = Src_off % g_fftnum;
+	if (Mod) times += 1;
+	//loop
+	for (i = 0, cur = 0; i < times; i++, cur += g_fftnum)
+	{
+		ZeroRealArray(pFFTArray_real, g_fftnum);
+		ZeroRealArray(pFFTArray_imag, g_fftnum);
+		//Copy Data SrcArray -> FFTArray
+		for (off = 0; off < g_fftnum; off++)
+		{
+			if (i == times - 1 && Mod && cur + off >= Src_off)
+			{
+				*(pFFTArray_real + off) = 0.0;//fill zero
+			}
+			*(pFFTArray_real + off) = *(pSrcArray + cur + off);
+		}
+		//FFT or iFFT
+		FFT(pFFTArray_real, pFFTArray_imag, g_fftnum, inv_sign);
+		//Copy or Add Data FFTArray -> ObjArray
+		if (mode_sign)
+		{
+			for (off = 0; off < g_fftnum; off++)
+			{
+				if (i == times - 1 && Mod && cur + off >= Src_off) break;
+				*(pObjArray + cur + off) += *(pFFTArray_real + off);
+			}
+		}
+		else
+		{
+			for (off = 0; off < g_fftnum; off++)
+			{
+				if (i == times - 1 && Mod && cur + off >= Src_off) break;
+				*(pObjArray + cur + off) = *(pFFTArray_real + off);
+			}
+		}
+	}
+	free(pFFTArray_real);
+	free(pFFTArray_imag);
+}
+
 int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD *ppWaveData)
 {
 	COUNTNUM nSample_t, nTotalSample_t, nSamplePerSec_t, nPitch, nPitchPerSample, nBytePerPitch, nLevel;
@@ -73,7 +145,7 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 	pBYTE poi;
 	pSD pWaveData, pObjPitch;
 	size_t szWaveData;
-	REALNUM *pFFTArray_real[PITCH], *pFFTArray_imag, *pSumArray;
+	REALNUM *pFFTArray_real[TOTALPITCH], *pFFTArray_imag, *pSumArray;
 	pIS ite_stat;
 	//format var load
 	//Track
@@ -90,9 +162,9 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 	//result
 	nTotalSample_w = WsPerTs*nTotalSample_t;
 	szWaveData = nBytePerSample_w*nTotalSample_w;
-	ifft_time = WsPerTs / FFT_NUM;
+	ifft_time = WsPerTs / g_fftnum;
 	if (ifft_time < 1) return -1;
-	Mod = WsPerTs % FFT_NUM;
+	Mod = WsPerTs % g_fftnum;
 	if (Mod != 0) fft_time = ifft_time + 1;
 	else fft_time = ifft_time;
 	//Synthesize start
@@ -104,7 +176,7 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 	*ppWaveData = pWaveData;//return pWaveData
 	ite_stat = (pIS)malloc(sizeof(IS));
 	//Zero iteration data 
-	for (ctr = 0; ctr < PITCH; ctr++)
+	for (ctr = 0; ctr < g_TotalPitch; ctr++)
 	{
 		ite_stat->pitch_cur[ctr] = 0;
 		ite_stat->fft_cur[ctr] = 0;
@@ -114,17 +186,17 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 		ite_stat->wave_cur = 0;
 	}
 	pSumArray = (REALNUM *)calloc(nTotalSample_w, sizeof(REALNUM));
-	for (ctr = 0; ctr < PITCH; ctr++)
+	for (ctr = 0; ctr < g_TotalPitch; ctr++)
 	{
-		pFFTArray_real[ctr] = (REALNUM *)calloc(FFT_NUM, sizeof(REALNUM));
+		pFFTArray_real[ctr] = (REALNUM *)calloc(g_fftnum, sizeof(REALNUM));
 	}
-	pFFTArray_imag = (REALNUM *)calloc(FFT_NUM, sizeof(REALNUM));
+	pFFTArray_imag = (REALNUM *)calloc(g_fftnum, sizeof(REALNUM));
 	ZeroRealArray(pSumArray, nTotalSample_w);
 	//every TrackSample loop
 	pCur = pTrackData;
 	for (nSample_t = 0; nSample_t < nTotalSample_t; nSample_t++)
 	{
-		if (nSample_t != 0) pCur = pCur->pNextNode;
+		if (!pCur->pSampleData) return -1;
 		poi = pCur->pSampleData;
 		//every Pitch loop//filter trigger
 		for (nPitch = 0; nPitch < nPitchPerSample; nPitch++, poi += nBytePerPitch)
@@ -132,7 +204,7 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 			//get nLevel
 			for (offs = 0, nLevel = 0, series = 1; offs < nBytePerPitch; offs++)
 			{
-				nLevel += (unsigned)(*(poi + offs))*series;
+				nLevel = series*BYTE2UINT(poi + offs);
 				series <<= 8;
 			}
 			if (nLevel > 0)
@@ -148,9 +220,9 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 				ite_stat->fft_cur[nPitch] = 0;
 				//real
 				pObjPitch = OriPitchData->pitch[nPitch];
-				for (offcur = ite_stat->pitch_cur[nPitch]; offcur + delta < FFT_NUM; offcur++)
+				for (offcur = ite_stat->pitch_cur[nPitch]; offcur + delta < g_fftnum; offcur++)
 				{
-					if (offcur < OriPitchData->offs[nPitch])
+					if (offcur < OriPitchData->szData[nPitch])
 					{
 						*(pFFTArray_real[nPitch] + offcur + delta) = (REALNUM)(*(pObjPitch + offcur)) / pow(2, sizeof(SD) * 8 - 1)*(nLevel / 255);
 					}
@@ -159,7 +231,7 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 						*(pFFTArray_real[nPitch] + offcur + delta) = 0.0;
 					}
 				}
-				if (offcur >= OriPitchData->offs[nPitch]) offcur = OriPitchData->offs[nPitch] - 1;
+				if (offcur >= OriPitchData->szData[nPitch]) offcur = OriPitchData->szData[nPitch] - 1;
 				ite_stat->pitch_cur[nPitch] = offcur;
 				//last fft_time
 				if (ctr == fft_time - 1)
@@ -167,37 +239,119 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 					ite_stat->fft_cur[nPitch] = Mod;
 				}
 				//imag zero
-				ZeroRealArray(pFFTArray_imag, FFT_NUM);
+				ZeroRealArray(pFFTArray_imag, g_fftnum);
 				//FFT
 				if (Mod != 0 && ctr == fft_time - 1) break;
-				FFT(pFFTArray_real[nPitch], pFFTArray_imag, FFT_NUM, 1);
+				FFT(pFFTArray_real[nPitch], pFFTArray_imag, g_fftnum, 1);
 				//copy result
 				delta = ite_stat->sum_fft_cur;
-				for (offcur = 0; offcur < FFT_NUM; offcur++)
+				for (offcur = 0; offcur < g_fftnum; offcur++)
 				{
 					*(pSumArray + delta + offcur) += *(pFFTArray_real[nPitch] + offcur);
 				}
-				ite_stat->sum_fft_cur += FFT_NUM;
+				ite_stat->sum_fft_cur += g_fftnum;
 			}
 		}
 		//iFFT
 		for (ctr = 0; ctr < ifft_time; ctr++)
 		{
-			ZeroRealArray(pFFTArray_imag, FFT_NUM);
-			FFT(pSumArray + (ite_stat->sum_ifft_cur), pFFTArray_imag, FFT_NUM, -1);
-			ite_stat->sum_ifft_cur += FFT_NUM;
+			ZeroRealArray(pFFTArray_imag, g_fftnum);
+			FFT(pSumArray + (ite_stat->sum_ifft_cur), pFFTArray_imag, g_fftnum, -1);
+			ite_stat->sum_ifft_cur += g_fftnum;
 			offs = ite_stat->sum_ifft_cur;
 			offcur = ite_stat->wave_cur;
-			for (cursor = 0; cursor < FFT_NUM; cursor++)
+			for (cursor = 0; cursor < g_fftnum; cursor++)
 			{
 				*(pWaveData + offcur + cursor) = (SD)(*(pSumArray + offs + cursor)) * pow(2, sizeof(SD) * 8 - 1);
 			}
-			ite_stat->wave_cur += FFT_NUM;
+			ite_stat->wave_cur += g_fftnum;
 		}
+		//pCur point next TrackSample Node
+		pCur = pCur->pNextNode;
 	}
 	free(ite_stat);
 	free(pSumArray);
-	for (ctr = 0; ctr < PITCH; ctr++) free(pFFTArray_real[ctr]);
+	for (ctr = 0; ctr < g_TotalPitch; ctr++) free(pFFTArray_real[ctr]);
 	free(pFFTArray_imag);
 	return 0;
 }
+
+
+int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD *ppWaveData)
+{
+	COUNTNUM nSample_t, nTotalSample_t, nSamplePerSec_t, nPitchPerSample, nBytePerPitch, nPitch, nLevel;
+	COUNTNUM nSample_w, nTotalSample_w, nSamplePerSec_w, nBytePerSample_w;
+	COUNTNUM WsPerTs, OriPitch_off, OriPitchLen;
+	size_t nBytePerSample_t;
+	pTDLL pNode;
+	pBYTE poi;
+	pSD pWaveData, pObjPitch;
+	size_t szWaveData;
+	REALNUM *pTempArray, *pSumArray, *pCur;
+	int ctr;
+	//format var load
+	//Track
+	nBytePerPitch = pTrackHead->nBitPerPitch / 8;
+	nPitchPerSample = pTrackHead->nPitchPerSample;
+	nBytePerSample_t = nBytePerPitch*nPitchPerSample;
+	nTotalSample_t = pTrackHead->szData / nBytePerSample_t;
+	nSamplePerSec_t = pTrackHead->nSamplePerSec;
+	//Wave
+	nSamplePerSec_w = pWaveHead->nSamplesPerSec;
+	nBytePerSample_w = pWaveHead->nBitsPerSample / 8;
+	//WaveSample / TrackSample
+	WsPerTs = nSamplePerSec_w / nSamplePerSec_t;
+	//result
+	nTotalSample_w = WsPerTs*nTotalSample_t;
+	szWaveData = nBytePerSample_w*nTotalSample_w;
+	//Synthesize start
+	//modfiy WaveHead
+	pWaveHead->szFile += szWaveData;
+	pWaveHead->szSampleData += szWaveData;
+	//static
+	pWaveData = (pSD)malloc(szWaveData);
+	*ppWaveData = pWaveData;//return pWaveData
+	pSumArray = (REALNUM *)calloc(nTotalSample_w, sizeof(REALNUM));
+	ZeroRealArray(pSumArray, nTotalSample_w);
+	pTempArray = (REALNUM *)calloc(nTotalSample_w, sizeof(REALNUM));
+	ZeroRealArray(pTempArray, nTotalSample_w);
+	//every pitch loop
+	for (nPitch = 0; nPitch < g_TotalPitch; nPitch++)
+	{
+		//reset
+		pNode = pTrackData;
+		pCur = pTempArray;
+		OriPitch_off = 0;
+		//
+		pObjPitch = OriPitchData->pitch[nPitch];
+		OriPitchLen = OriPitchData->szData[nPitch] / sizeof(SD);
+		for (nSample_t = 0; nSample_t < nTotalSample_t; nSample_t++, pNode = pNode->pNextNode)
+		{
+			//get level of this sample_t this pitch
+			nLevel = getLevel(pNode->pSampleData, nPitch, nBytePerPitch);
+			if (nLevel > 0) OriPitch_off = 0;
+			//calc data from OriPitchData and write fft array
+			for (nSample_w = 0; nSample_w < WsPerTs; nSample_w++, pCur++)
+			{
+				if (OriPitch_off < OriPitchLen)
+				{
+					*pCur = (REALNUM)(*(pObjPitch + OriPitch_off) / pow(2, sizeof(SD) * 8 - 1)*(nLevel / 255));
+					OriPitch_off++;
+				}
+				else
+				{
+					*pCur = 0.0;
+				}
+			}
+		}
+		//FFT
+		FFT_Execute(pTempArray, pSumArray, nTotalSample_w, 1, 1);
+	}
+	//iFFT
+	FFT_Execute(pSumArray, pSumArray, nTotalSample_w, -1, 0);
+	//all finish all free;
+	free(pTempArray);
+	free(pSumArray);
+	return 0;
+}
+
