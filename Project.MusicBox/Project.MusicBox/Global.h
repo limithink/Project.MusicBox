@@ -123,5 +123,5 @@ typedef struct iterationStatus
 
 //global var
 CHAR g_OpenedFilePath[_MAX_PATH];
-COUNTNUM g_fftnum = FFT_NUM;
-COUNTNUM g_TotalPitch = TOTALPITCH;
+COUNTNUM g_fftnum;
+COUNTNUM g_TotalPitch;

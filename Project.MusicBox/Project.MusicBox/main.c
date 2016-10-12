@@ -15,9 +15,11 @@ int main(int argc, CHAR *argv[])
 	COUNTNUM nTotalSample;
 	size_t nBytePerSample;
 	//config.ini Load
-
+	g_OpenedFilePath[_MAX_PATH];
+	g_fftnum = FFT_NUM;
+	g_TotalPitch = TOTALPITCH;
 	//end
-	//OriginalPitch Load + config.ini Load
+	//OriginalPitch Load
 	pOPD pOriPitchData = (pOPD)malloc(sizeof(OPD));
 	rtn_s = LoadPitchFiles(pOriPitchData);
 	if (rtn_s < 0)
@@ -128,7 +130,7 @@ int main(int argc, CHAR *argv[])
 			if (!pWaveData)
 			{
 				printf("WaveSynthesizing......\n");
-				rtn_s = WaveSynthesizer(pOriPitchData, pTrackHead, pTrackData, pWaveHead, &pWaveData);
+				rtn_s = WaveSynthesizer_low(pOriPitchData, pTrackHead, pTrackData, pWaveHead, &pWaveData);
 				if (rtn_s < 0)
 				{
 					printf("WaveSynthesizing Error!\n");
@@ -151,7 +153,7 @@ int main(int argc, CHAR *argv[])
 			if (!pWaveData)
 			{
 				printf("WaveSynthesizing......\n");
-				rtn_s = WaveSynthesizer(pOriPitchData, pTrackHead, pTrackData, pWaveHead, &pWaveData);
+				rtn_s = WaveSynthesizer_low(pOriPitchData, pTrackHead, pTrackData, pWaveHead, &pWaveData);
 				if (rtn_s < 0)
 				{
 					printf("WaveSynthesizing Error!\n");

@@ -106,10 +106,9 @@ void FFT_Execute(REALNUM *pSrcArray, REALNUM *pObjArray, COUNTNUM Src_off, int i
 		for (off = 0; off < g_fftnum; off++)
 		{
 			if (i == times - 1 && Mod && cur + off >= Src_off)
-			{
 				*(pFFTArray_real + off) = 0.0;//fill zero
-			}
-			*(pFFTArray_real + off) = *(pSrcArray + cur + off);
+			else
+				*(pFFTArray_real + off) = *(pSrcArray + cur + off);
 		}
 		//FFT or iFFT
 		FFT(pFFTArray_real, pFFTArray_imag, g_fftnum, inv_sign);
@@ -281,10 +280,9 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 {
 	COUNTNUM nSample_t, nTotalSample_t, nSamplePerSec_t, nPitchPerSample, nBytePerPitch, nPitch, nLevel;
 	COUNTNUM nSample_w, nTotalSample_w, nSamplePerSec_w, nBytePerSample_w;
-	COUNTNUM WsPerTs, OriPitch_off, OriPitchLen;
+	COUNTNUM WsPerTs, OriPitch_off, OriPitchLen, QuantizeMod;
 	size_t nBytePerSample_t;
 	pTDLL pNode;
-	pBYTE poi;
 	pSD pWaveData, pObjPitch;
 	size_t szWaveData;
 	REALNUM *pTempArray, *pSumArray, *pCur;
@@ -304,6 +302,7 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 	//result
 	nTotalSample_w = WsPerTs*nTotalSample_t;
 	szWaveData = nBytePerSample_w*nTotalSample_w;
+	QuantizeMod = pow(2, sizeof(SD) * 8 - 1);
 	//Synthesize start
 	//modfiy WaveHead
 	pWaveHead->szFile += szWaveData;
@@ -335,7 +334,7 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 			{
 				if (OriPitch_off < OriPitchLen)
 				{
-					*pCur = (REALNUM)(*(pObjPitch + OriPitch_off) / pow(2, sizeof(SD) * 8 - 1)*(nLevel / 255));
+					*pCur = (REALNUM)(*(pObjPitch + OriPitch_off) / QuantizeMod*(nLevel / 255));
 					OriPitch_off++;
 				}
 				else
@@ -349,6 +348,11 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 	}
 	//iFFT
 	FFT_Execute(pSumArray, pSumArray, nTotalSample_w, -1, 0);
+	//Transfer Data
+	for (nSample_w = 0; nSample_w < nTotalSample_w; nSample_w++)
+	{
+		*(pWaveData + nSample_w) = (SD)((*(pSumArray + nSample_w))*QuantizeMod);
+	}
 	//all finish all free;
 	free(pTempArray);
 	free(pSumArray);
