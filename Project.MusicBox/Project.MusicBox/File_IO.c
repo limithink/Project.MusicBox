@@ -23,9 +23,12 @@ int LoadTrackFile(CHAR *path, pTFH *ppTrackHead, pTDLL *ppTrackData)
 		pCur->pSampleData = (pBYTE)malloc(nBytePerSample);
 		fread(pCur->pSampleData, nBytePerSample, 1, fpTrackFile);
 		pCur->pNextNode = (pTDLL)malloc(sizeof(TDLL));
+		//ptr init
+		pCur->pNextNode->pNextNode = NULL;
+		pCur->pNextNode->pSampleData = NULL;
+		//
 		pCur = pCur->pNextNode;
 	}
-	free(pCur);
 	fclose(fpTrackFile);
 	*ppTrackHead = pFileHead;
 	*ppTrackData = pDataHead;
