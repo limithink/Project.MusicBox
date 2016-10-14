@@ -15,7 +15,7 @@
 
 #define TOTALPITCH 30
 #define PI M_PI
-#define	FFT_NUM 1024
+#define	FFT_NUM 8192
 
 typedef char *pBYTE;
 typedef char CHAR;

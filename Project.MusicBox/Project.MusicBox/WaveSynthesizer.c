@@ -134,6 +134,7 @@ void FFT_Execute(REALNUM *pSrcArray, REALNUM *pObjArray, COUNTNUM Src_off, int i
 	free(pFFTArray_imag);
 }
 
+/*
 int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD *ppWaveData)
 {
 	COUNTNUM nSample_t, nTotalSample_t, nSamplePerSec_t, nPitch, nPitchPerSample, nBytePerPitch, nLevel;
@@ -274,7 +275,7 @@ int WaveSynthesizer(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH p
 	free(pFFTArray_imag);
 	return 0;
 }
-
+*/
 
 int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pWFH pWaveHead, pSD *ppWaveData)
 {
