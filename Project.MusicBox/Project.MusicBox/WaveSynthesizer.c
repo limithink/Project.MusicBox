@@ -280,12 +280,12 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 {
 	COUNTNUM nSample_t, nTotalSample_t, nSamplePerSec_t, nPitchPerSample, nBytePerPitch, nPitch, nLevel;
 	COUNTNUM nSample_w, nTotalSample_w, nSamplePerSec_w, nBytePerSample_w;
-	COUNTNUM WsPerTs, OriPitch_off, OriPitchLen, QuantizeMod;
+	COUNTNUM WsPerTs, OriPitch_off, OriPitchLen;
 	size_t nBytePerSample_t;
 	pTDLL pNode;
 	pSD pWaveData, pObjPitch;
 	size_t szWaveData;
-	REALNUM *pTempArray, *pSumArray, *pCur;
+	REALNUM *pTempArray, *pSumArray, *pCur, QuantizeMod;
 	int ctr;
 	//format var load
 	//Track
@@ -302,7 +302,7 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 	//result
 	nTotalSample_w = WsPerTs*nTotalSample_t;
 	szWaveData = nBytePerSample_w*nTotalSample_w;
-	QuantizeMod = pow(2, sizeof(SD) * 8 - 1);
+	QuantizeMod = pow(2, sizeof(SD) * 8 - 1) - 1;
 	//Synthesize start
 	//modfiy WaveHead
 	pWaveHead->szFile += szWaveData;
@@ -334,7 +334,7 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 			{
 				if (OriPitch_off < OriPitchLen)
 				{
-					*pCur = (REALNUM)(*(pObjPitch + OriPitch_off) / QuantizeMod*(nLevel / 255));
+					*pCur = *(pObjPitch + OriPitch_off) / QuantizeMod*(nLevel / 255.0);
 					OriPitch_off++;
 				}
 				else
