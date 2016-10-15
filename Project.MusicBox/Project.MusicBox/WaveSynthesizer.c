@@ -76,7 +76,7 @@ unsigned int BYTE2UINT(pBYTE src)
 	return sum;
 }
 
-COUNTNUM getLevel(pBYTE *pSampleData, COUNTNUM nObjPitch, COUNTNUM nBytePerPitch)
+COUNTNUM getLevel(pBYTE pSampleData, COUNTNUM nObjPitch, COUNTNUM nBytePerPitch)
 {
 	COUNTNUM nLevel, series, nPitch, Pitch_off, Level_off;
 	for (nPitch = 0, Pitch_off = 0; nPitch < nObjPitch; nPitch++, Pitch_off += nBytePerPitch);
@@ -314,17 +314,18 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 	pSumArray = (REALNUM *)calloc(nTotalSample_w, sizeof(REALNUM));
 	ZeroRealArray(pSumArray, nTotalSample_w);
 	pTempArray = (REALNUM *)calloc(nTotalSample_w, sizeof(REALNUM));
-	ZeroRealArray(pTempArray, nTotalSample_w);
+	
 	//every pitch loop
 	for (nPitch = 0; nPitch < g_TotalPitch; nPitch++)
 	{
 		//reset
 		pNode = pTrackData;
 		pCur = pTempArray;
-		OriPitch_off = 0;
-		//
 		pObjPitch = OriPitchData->pitch[nPitch];
 		OriPitchLen = OriPitchData->szData[nPitch] / sizeof(SD);
+		OriPitch_off = OriPitchLen;
+		ZeroRealArray(pTempArray, nTotalSample_w);
+		//
 		for (nSample_t = 0; nSample_t < nTotalSample_t; nSample_t++, pNode = pNode->pNextNode)
 		{
 			//get level of this sample_t this pitch
@@ -345,8 +346,20 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 			}
 		}
 		//FFT
-		FFT_Execute(pTempArray, pSumArray, nTotalSample_w, 1, 1);
+		FFT_Execute(pTempArray, pTempArray, nTotalSample_w, 1, 0);
+		//Sum Data
+		for (nSample_w = 0; nSample_w < nTotalSample_w; nSample_w++)
+		{
+			*(pSumArray + nSample_w) += *(pTempArray + nSample_w);
+		}
 	}
+	/*
+	//calc average
+	for (nSample_w = 0; nSample_w < nTotalSample_w; nSample_w++)
+	{
+		*(pSumArray + nSample_w) /= g_TotalPitch;
+	}
+	*/
 	//iFFT
 	FFT_Execute(pSumArray, pSumArray, nTotalSample_w, -1, 0);
 	//Transfer Data
