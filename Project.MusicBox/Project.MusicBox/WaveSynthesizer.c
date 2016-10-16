@@ -286,7 +286,7 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 	pTDLL pNode;
 	pSD pWaveData, pObjPitch;
 	size_t szWaveData;
-	REALNUM *pTempArray, *pSumArray, *pCur, QuantizeMod;
+	REALNUM *pTempArray, *pSumArray, *pCur, QuantizeMod, CalcLevel;
 	int ctr;
 	//format var load
 	//Track
@@ -324,19 +324,24 @@ int WaveSynthesizer_low(pOPD OriPitchData, pTFH pTrackHead, pTDLL pTrackData, pW
 		pObjPitch = OriPitchData->pitch[nPitch];
 		OriPitchLen = OriPitchData->szData[nPitch] / sizeof(SD);
 		OriPitch_off = OriPitchLen;
+		CalcLevel = 0.0;
 		ZeroRealArray(pTempArray, nTotalSample_w);
 		//
 		for (nSample_t = 0; nSample_t < nTotalSample_t; nSample_t++, pNode = pNode->pNextNode)
 		{
 			//get level of this sample_t this pitch
 			nLevel = getLevel(pNode->pSampleData, nPitch, nBytePerPitch);
-			if (nLevel > 0) OriPitch_off = 0;
+			if (nLevel > 0)
+			{
+				OriPitch_off = 0;
+				CalcLevel = nLevel / 255.0;
+			}
 			//calc data from OriPitchData and write fft array
 			for (nSample_w = 0; nSample_w < WsPerTs; nSample_w++, pCur++)
 			{
 				if (OriPitch_off < OriPitchLen)
 				{
-					*pCur = *(pObjPitch + OriPitch_off) / QuantizeMod*(nLevel / 255.0);
+					*pCur = *(pObjPitch + OriPitch_off) / QuantizeMod*CalcLevel;
 					OriPitch_off++;
 				}
 				else
