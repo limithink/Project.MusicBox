@@ -15,7 +15,7 @@ int main(int argc, CHAR *argv[])
 	COUNTNUM nTotalSample;
 	size_t nBytePerSample;
 	//config.ini Load
-	g_OpenedFilePath[_MAX_PATH];
+	/////////////////g_OpenedFilePath[_MAX_PATH];
 	g_fftnum = FFT_NUM;
 	g_TotalPitch = TOTALPITCH;
 	//end
@@ -57,7 +57,7 @@ int main(int argc, CHAR *argv[])
 				pTrackHead->nSamplePerSec,
 				nTotalSample);
 		}
-		printf("_(:3¡¹¡Ï)_> ");
+		printf("_(:3ï¿½ï¿½ï¿½ï¿½)_> ");
 		rtn_s = CommandInterpreter(opt);
 		if (rtn_s < 0)
 		{

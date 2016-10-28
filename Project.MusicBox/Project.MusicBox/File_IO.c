@@ -63,7 +63,7 @@ int SaveTrackFile(CHAR *path, pTFH pTrackHead, pTDLL pTrackData, int IDentifier)
 int LoadPitchFiles(pOPD OriPitchData)
 {
 	FILE *fpWaveFile = NULL;
-	char path[_MAX_PATH];
+	char path[MAX_PATH];
 	char temp;
 	size_t szData;
 	int i, VerifyFlag = 0;

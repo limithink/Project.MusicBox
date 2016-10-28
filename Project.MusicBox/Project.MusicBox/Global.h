@@ -12,6 +12,7 @@
 #define MAX_OPERA 10
 #define MIN_OPERA 3
 #define MAX_NUM_BIT 10
+#define MAX_PATH 260 //
 
 #define TOTALPITCH 30
 #define PI M_PI
@@ -75,7 +76,7 @@ typedef struct Operation
 	COUNTNUM param1;
 	COUNTNUM param2;
 	COUNTNUM param3;
-	CHAR path[_MAX_PATH];
+	CHAR path[MAX_PATH];
 	CHAR reserve[MAX_OPERA];
 }OPT, *pOPT;
 
@@ -122,6 +123,6 @@ typedef struct iterationStatus
 //
 
 //global var
-CHAR g_OpenedFilePath[_MAX_PATH];
+CHAR g_OpenedFilePath[MAX_PATH];
 COUNTNUM g_fftnum;
 COUNTNUM g_TotalPitch;
