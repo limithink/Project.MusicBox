@@ -122,3 +122,10 @@ int SaveWaveFile(CHAR *path, pWFH pWaveHead, pSD pWaveData)
 	return 0;
 }
 
+int LoadConfigFile()
+{
+	FILE *fpCfgFile = NULL;
+	fpCfgFile = fopen(CONFIGFILEPATH, "rb");
+	if (!fpCfgFile) return -1;
+
+}

@@ -18,6 +18,8 @@
 #define PI M_PI
 #define	FFT_NUM 8
 
+#define CONFIGFILEPATH "bwmb.cfg"
+
 typedef char *pBYTE;
 typedef char CHAR;
 
@@ -97,6 +99,13 @@ typedef struct iterationStatus
 	size_t sum_ifft_cur;
 	size_t wave_cur;
 }IS, *pIS;
+
+typedef struct Configuration
+{
+	COUNTNUM fft_num;
+	COUNTNUM TotalPitch;
+	char PitchFilePath[MAX_PATH];
+}CFG, *pCFG;
 
 
 //OPERA Msg

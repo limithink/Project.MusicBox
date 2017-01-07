@@ -57,7 +57,7 @@ int main(int argc, CHAR *argv[])
 				pTrackHead->nSamplePerSec,
 				nTotalSample);
 		}
-		printf("_(:3����)_> ");
+		printf("BW_Musicbox> ");
 		rtn_s = CommandInterpreter(opt);
 		if (rtn_s < 0)
 		{
